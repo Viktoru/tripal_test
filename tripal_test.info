@@ -11,3 +11,5 @@ dependencies[]     = search
 dependencies[]     = php
 
 files[] = tripal_test.test
+files[] = tripal_test.module
+files[] = tripal_test.install

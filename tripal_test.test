@@ -2,13 +2,13 @@
 
 /**
  * Prerequisites for testing
- * 1) Install PHP cURL: sudo apt-get install php5-curl
+ * 1) Install PHP cURL: sudo apt-get install php5-curl or install php-curl
  * 2) Enable the simpletest module: drush pm-enable simpletest
  * 3) Run the test:  drush test-run TripalCoreTest
  *
  * Tutorial: https://www.drupal.org/simpletest-tutorial-drupal7
  */
-class TripalTest extends DrupalWebTestCase {
+class Tripal_test extends DrupalWebTestCase {
   protected $privileged_user;
 
   /**
@@ -16,15 +16,14 @@ class TripalTest extends DrupalWebTestCase {
    * implement getInfo(). This provides the user interface information
    * that will show up on the simpletest page of our site.
    */
-  public static function getInfo() {
-    $info = array(
+  public static function getInfo() { // taking off $info
+	return array(
       'name' => 'Tripal Core unit tests',
       'description' => 'Tests the functionality of the Tripal core module is
         working correctly. WARNING: this test should only be used on an
         freshly installed Drupal site without data.',
-      'group' => 'Tripal',
+      'group' => 'tripal_test',
     );
-    return $info;
   }
 
   /**
@@ -32,10 +31,16 @@ class TripalTest extends DrupalWebTestCase {
    *
    * Sets up unit test environment.
    */
-  function setUp() {
+  public function setUp() {
     // Enable modules required for the test.
     $modules = array('ctools', 'views', 'tripal_core');
-    parent::setUp($modules);
+    parent::setUp($modules, 'tripal_test_page');
+
+  }
+
+// temporary test - tripal_test_page
+  public function testTripal_test(){
+    $this->drupalGet('tripal_test_page');
   }
 
   /**
@@ -48,25 +53,23 @@ class TripalTest extends DrupalWebTestCase {
     $result = db_query("ALTER TABLE {tripal_custom_tables} DROP CONSTRAINT tripal_custom_tables_fk1 CASCADE");
     $this->assertTrue($result, "The constraint, tripal_custom_tables_fk1, could not be dropped");
 
-
     // Now call the parent tearDown() function.
     parent::tearDown();
   }
 
   // TEST FuNCTIONS:
   // Note: The following test functions are executed in the order they appear.
-
   /**
    * Tests the Chado Schema API functions and related non API funcions.
    */
-  function testTripalCore() {
+  function Tripal_test_Core() {
 
      // The chado schema should NOT exist. If it does remove it
      $result = chado_dbschema_exists('chado');
      if ($result) {
+       //echo($result);
        removeChado();
      }
-
      // Install Chado v1.11 first
      debug("Install Chado v1.11.");
      tripal_core_install_chado('Install Chado v1.11');
@@ -97,4 +100,5 @@ class TripalTest extends DrupalWebTestCase {
        db_query("drop schema chado cascade");
      }
   }
+
 }

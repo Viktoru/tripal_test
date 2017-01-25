@@ -1,7 +1,6 @@
 # tripal_test
 ===========================================
-WARNING: This test should only be used on an
-freshly installed Drupal site without data.
+WARNING: This test should only be used on an freshly installed Drupal site without data.
 ===========================================        
 Unit Testing for Tripal
 Running this module you will remove the Chado schema first. It will test if this will happen or not.

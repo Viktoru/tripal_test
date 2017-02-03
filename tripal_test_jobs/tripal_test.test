@@ -1,25 +1,22 @@
 <?php
 
   /**
-   * START TESTING CHADO SCHEMA V1.11, V1.2, V1.3
-   *
-   * TO TEST THIS APPLICATION YOU NEED TO:
+   * Prerequisites for testing
    * 1) Install PHP cURL: sudo apt-get install php5-curl or install php-curl
    * 2) Enable the simpletest module: drush pm-enable simpletest
    * 3) Run the test:  drush test-run TripalCoreTest
+   *
    * Tutorial: https://www.drupal.org/simpletest-tutorial-drupal7
    */
-
   class Tripal_test extends DrupalWebTestCase {
 	protected $privileged_user;
 
-	/**/home/vunda/PhpstormProjects/tripal2
+	/**
 	 * To make the test available to the Simpletest testing interface, we
 	 * implement getInfo(). This provides the user interface information
 	 * that will show up on the simpletest page of our site.
 	 */
-
-	public static function getInfo() {
+	public static function getInfo() { // taking off $info
 	  return array(
 		'name' => 'Tripal Core unit tests',
 		'description' => 'Tests the functionality of the Tripal core module is
@@ -31,8 +28,9 @@
 
 	/**
 	 * Implements DrupalUnitTestCase::setUp().
+	 *
+	 * Sets up unit test environment.
 	 */
-
 	function setUp() {
 	  // Enable modules required for the test.
 	  $modules = array('ctools', 'views', 'tripal_core');
@@ -73,6 +71,9 @@
 	  // Now call the parent tearDown() function.
 	  parent::tearDown();
 	}
+
+
+	// TEST FuNCTIONS:
 	// Note: The following test functions are executed in the order they appear.
 	/**
 	 * Tests the Chado Schema API functions and related non API functions.
@@ -82,7 +83,7 @@
 	  $result = chado_dbschema_exists('chado');
 	  if ($result) {
 		$this->removeChado();
-		print_r('<pre>' . print_r($result, TRUE) . '</pre>');
+		//print_r('<pre>' . print_r($result, TRUE) . '</pre>');
 
 		// Install Chado v1.11 first
 		debug("Install Chado v1.3.");

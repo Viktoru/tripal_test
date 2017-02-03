@@ -1,0 +1,15 @@
+name = Tripal Test Module
+description = Provides a suite of unit testing for all of the Tripal set of modules.  
+core = 7.x
+project = tripal
+package = Tripal
+version = 7.x-2.0
+
+dependencies[]     = views
+dependencies[]     = path
+dependencies[]     = search
+dependencies[]     = php
+
+files[] = tripal_test.test
+files[] = tripal_test.module
+files[] = tripal_test.install

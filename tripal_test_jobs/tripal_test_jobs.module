@@ -1,0 +1,12 @@
+<?php
+
+  /**
+   * Tripal test jobs module
+   */
+  /**
+   * A callback function for testing with the tripal_add_jobs() function.
+   */
+  function tripal_test_jobs_callback() {
+
+
+  }

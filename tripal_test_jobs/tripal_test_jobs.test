@@ -62,11 +62,14 @@
 	  $is_job_running = tripal_is_job_running();
 	  $a = ($is_job_running);
 	  if($a == false){
+		$is_job_running = tripal_is_job_running();
 		$this->assertFalse($is_job_running, 'Tripal job is not running. Should return FALSE or 0', 'Other');
 	} elseif($a == true) {
+		$is_job_running = tripal_is_job_running();
 		$this->assertTrue($is_job_running, 'Tripal job is running. Should return TRUE or 1', 'Other');
 	  } else {
-	    $this->verbose('If a job does not return True or False or 0 or 1 then it will display an error.');
+		$is_job_running = tripal_is_job_running();
+	    $this->assertText($is_job_running, 'If a job does not return True or False or 0 or 1 then it will display an error.');
 	  }
 	}
 	  /**
@@ -141,22 +144,30 @@
 	public function test_Tripal_get_active_jobs() {
 
 	  // Case #1: What if a list of jobs associated with the given modulename return. It should return TRUE.
-	  $job_id = tripal_add_job('Test Job Case #12', 'modulename');
+	  $job_id = tripal_get_active_jobs('Test Job Case #12', 'modulename');
 	  $this->assertTrue($job_id, 'A list of jobs associated with the given modulename return.');
 
 	  // Case #2: What if the modulename doesn't exist. It should return FALSE.
-	  $job_id = tripal_add_job('Test Job Case #12', '');
-	  $this->assertTrue($job_id, 'A list of jobs associated with the given modulename is not returning.');
+	  $job_id = tripal_get_active_jobs('Test Job Case #13', '');
+	  $this->assertFalse($job_id, 'A list of jobs associated with the given modulename is not returning.');
 
 	}
-	public function testTripal_launch_job(){
+	public function test_tripal_cancel_job(){
 
-  }
+	  // Case #1: What if a job is cancel currently when a job is in the queue. It should return FALSE.
+		$job_id = tripal_cancel_job('Test Job Case #14', TRUE);
+	  	$this->assertFalse($job_id, 'A job was cancel currently when a job is n the queue. It should return FALSE');
 
-  public function testTripal_get_job_end() {
+	  // Case #2: What if the job is in progress or it has finished. It should return FALSE.
 
+	  // Case #3: What if the job didn't cancel. It should return TRUE and redirect to tripal_jobs.
+	  $job_id = tripal_cancel_job('Test Job Case #16', TRUE);
+	//  $this->drupalGet('user/register');
+	 // $this->assertLinkByHref('node/1', 0, 'A link to node 1 appears on the page');
 
-  }
+	  $this->assertTrue($job_id, 'A job was not cancel. It should return TRUE');
+
+	}
 
 
   }

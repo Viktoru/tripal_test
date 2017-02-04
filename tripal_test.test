@@ -13,7 +13,7 @@
   class Tripal_test extends DrupalWebTestCase {
 	protected $privileged_user;
 
-	/**/home/vunda/PhpstormProjects/tripal2
+	/** home/vunda/PhpstormProjects/tripal2
 	 * To make the test available to the Simpletest testing interface, we
 	 * implement getInfo(). This provides the user interface information
 	 * that will show up on the simpletest page of our site.

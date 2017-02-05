@@ -80,94 +80,99 @@
 	  // Case #1:  submit a job successfully and receive a job id.
 	  $args = array();
 	  $job_id = tripal_add_job('Test Job Case #1', 'tripal_test_jobs', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-	  $this->assertTrue(is_numeric($job_id), 'tripal_add_job() should return a numeric job ID.', 'Other');
+	  $this->assertTrue(is_numeric($job_id), 'Case #1: it should return a numeric job ID.', 'Other');
+
 	  // Case #2:  was the job actually added to the database table.
-	  $intdate = strtotime("now");
-//	  $intDate = 1485386152;
+//	  $intdate = strtotime("now"); 1485386152
+	  $intDate = 1485386152;
 //	  $inDate = date("Y-m-d H:i:s", $intDate); // return a date form not a int
 
-	  $dbcall = db_query("SELECT submit_date, status FROM tripal_jobs WHERE status='Completed' AND submit_date = $intdate ")->fetchField();
-	    if ($dbcall == true) {
-		$job_id = tripal_add_job('Test Job Case #2', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-		$this->assertTrue($job_id, 'The last job was added to the database', 'Other');
-		} else {
-		$job_id = tripal_add_job('Test Job Case #3', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-		$this->assertFalse($job_id, 'The last job was no added to the database', 'Other');
-	  	}
+	 // $dbcall = db_query("SELECT * FROM {tripal_jobs} WHERE submit_date = '1485386152'");
+
+//	  $this->db_query("SELECT * FROM {tripal_jobs})
+// 		$this->db_query(WHERE submit_date <= :intDate ", array(':intDate' => $intDate))->fetchObject();
+
+	  //var_dump($dbcall->submit_date);
+
+//
+//	    if ($dbcall == true) {
+//		$job_id = tripal_add_job('Test Job Case #2', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 10);
+//		$this->assertTrue($job_id, 'The last job was added to the database', 'Other');
+//		} else {
+//		$job_id = tripal_add_job('Test Job Case #3', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 10);
+//		$this->assertFalse($job_id, 'The last job was no added to the database', 'Other');
+//	  	}
 
 	  // Case #3:  what if the job name isn't provided. The function
 	  // should return FALSE instead of a job id.
-	  $job_id = tripal_add_job('', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-	  $this->assertFalse(!$job_id, 'tripal_add_job() should return FALSE if the name is not provided', 'Other');
+	  $job_id1 = tripal_add_job('', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 10);
+	  $this->assertFalse(!$job_id1, 'Case #3: tripal_add_job() should return FALSE if the name is not provided', 'Other');
 
 	  // Case #4:  what if an empty callback is provided. The function
 	  // should return FALSE if no calllback is provided.
-	  $job_id = tripal_add_job('Test Job Case #4', 'modulename', '', $args, $user->uid, 10);
-	  $this->assertFalse($job_id, 'Tripal_add_job() should return FALSE if no callback is provided');
+	  $job_id2 = tripal_add_job('Test Job Case #4', 'modulename', '', $args, $user->uid, 10);
+	  $this->assertFalse($job_id2, 'Case #4: Tripal_add_job() should return FALSE if no callback is provided', 'Other');
 
 	  // Case #5:  what if a callback is provided but it doesn't exist. The
 	  // function should return FALSE.
-	  $job_id = tripal_add_job('Test Job Case #5', 'modulename', 'tripal_test_jobs_callback2', $args, $user->uid, 10);
-	  $this->assertFalse($job_id, 'If a callback is provided but it doesnt exist. It should return FALSE');
+	  $job_id3 = tripal_add_job('Test Job Case #5', 'modulename', 'tripal_test_jobs_callback2', $args, $user->uid, 10);
+	  $this->assertFalse($job_id3, 'Case #5: If a callback is provided but it doesnt exist. It should return FALSE', 'Other');
 
 
 	  // Case #6:  What if no arguments are provided. It should return FALSE.
-	  $job_id = tripal_add_job('Test Job Case #6', 'modulename', 'tripal_test_jobs_callback', '', $user->uid, 10);
-	  $this->assertFalse($job_id, 'If an argument was not provided. It should return FALSE');
+	  $job_id4 = tripal_add_job('Test Job Case #6', 'modulename', 'tripal_test_jobs_callback', '', $user->uid, 10);
+	  $this->assertFalse($job_id4, 'Case #6: If an argument was not provided. It should return FALSE', 'Other');
 
 	  // Case #7:  What if no UID is provided. It should return FALSE.
-	  $job_id = tripal_add_job('Test Job Case #7', 'modulename', 'tripal_test_jobs_callback', $args, $user, 10);
-	  $this->assertFalse($job_id, 'If an UID is not provided. It should return FALSE');
-
+	  $job_id5 = tripal_add_job('Test Job Case #7', 'modulename', 'tripal_test_jobs_callback', $args, '', 10);
+	  $this->assertFalse($job_id5, 'Case #7: If an UID is not provided. It should return FALSE', 'Other');
 
 	  // Case #8:  What if a priority greater than 10 is provided. It should
 	  // return FALSE.
-	  $job_id = tripal_add_job('Test Job Case #8', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 11);
-	  $this->assertFalse($job_id, 'If a priority is grater than 10 it should return FALSE');
+	  $job_id6 = tripal_add_job('Test Job Case #8', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 11);
+	  $this->assertFalse($job_id6, 'Case #8: If a priority is grater than 10 it should return FALSE', 'Other');
 
 	  // Case #9:  What if a priority less than 1 is provided. It should
 	  // return FALSE.
-	  $job_id = tripal_add_job('Test Job Case #9', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 0);
-	  $this->assertFalse($job_id, 'If a priority is less than 1 it should return FALSE');
-
+	  $job_id7 = tripal_add_job('Test Job Case #9', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 0);
+	  $this->assertFalse($job_id7, 'Case #9: If a priority is less than 1 it should return FALSE', 'Other');
 
 	  // Case #10:  What if the priority is an alpha character instead of
 	  // a number. It should return FALSE.
-	  $job_id = tripal_add_job('Test Job Case #10', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 'a');
-	  $this->assertFalse($job_id, 'If a priority is not numeric it should return FALSE');
+	  $job_id8 = tripal_add_job('Test Job Case #10', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 0);
+	  $this->assertFalse($job_id8, 'Case #10: If a priority is not numeric it should return FALSE', 'Other');
 
 	  // Case #11: what if the modulename is empty. It should return FALSE.
-	  $job_id = tripal_add_job('Test Job Case #11', '', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-	  $this->assertFalse($job_id, 'If the modulename is empty it should return FALSE');
+	  $job_id9 = tripal_add_job('Test Job Case #11', '', 'tripal_test_jobs_callback', $args, $user->uid, 10);
+	  $this->assertFalse($job_id9, 'Case #11: If the modulename is empty it should return FALSE', 'Other');
 
 	}
 	public function test_Tripal_get_active_jobs() {
 
 	  // Case #1: What if a list of jobs associated with the given modulename return. It should return TRUE.
 	  $job_id = tripal_get_active_jobs('Test Job Case #12', 'modulename');
-	  $this->assertTrue($job_id, 'A list of jobs associated with the given modulename return.');
+	  $this->assertTrue($job_id, 'A list of jobs associated with the given modulename return.', 'Other');
 
 	  // Case #2: What if the modulename doesn't exist. It should return FALSE.
 	  $job_id = tripal_get_active_jobs('Test Job Case #13', '');
-	  $this->assertFalse($job_id, 'A list of jobs associated with the given modulename is not returning.');
+	  $this->assertFalse($job_id, 'A list of jobs associated with the given modulename is not returning.', 'Other');
 
 	}
-	public function test_tripal_cancel_job(){
-
-	  // Case #1: What if a job is cancel currently when a job is in the queue. It should return FALSE.
-		$job_id = tripal_cancel_job('Test Job Case #14', TRUE);
-	  	$this->assertFalse($job_id, 'A job was cancel currently when a job is n the queue. It should return FALSE');
-
-	  // Case #2: What if the job is in progress or it has finished. It should return FALSE.
-
-	  // Case #3: What if the job didn't cancel. It should return TRUE and redirect to tripal_jobs.
-	  $job_id = tripal_cancel_job('Test Job Case #16', TRUE);
-	//  $this->drupalGet('user/register');
-	 // $this->assertLinkByHref('node/1', 0, 'A link to node 1 appears on the page');
-
-	  $this->assertTrue($job_id, 'A job was not cancel. It should return TRUE');
-
-	}
+//	public function test_tripal_cancel_job(){
+//
+//	  // Case #1: What if a job is cancel currently when a job is in the queue. It should return FALSE.
+//		$job_id = tripal_cancel_job('Test Job Case #14', TRUE);
+//	  	$this->assertFalse($job_id, 'A job was cancel currently when a job is n the queue. It should return FALSE', 'Other');
+//
+//	  // Case #2: What if the job is in progress or it has finished. It should return FALSE.
+//
+//	  // Case #3: What if the job didn't cancel. It should return TRUE and redirect to tripal_jobs.
+////	  $job_id = tripal_cancel_job('Test Job Case #16', TRUE);
+////	  $url = 'admin/tripal/tripal_jobs';
+////	  $this->assertTrue($job_id, $url, 'If A job was not cancel,
+////	  the current path is determined as destination. It should return TRUE', 'Other');
+//
+//	}
 
 
   }

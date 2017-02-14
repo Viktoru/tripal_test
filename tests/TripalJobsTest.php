@@ -6,19 +6,23 @@ require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
 
+
+
 class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
-  public function setUp(){
-      //create a object
-      var_dump('1');
-    //  $this->newdb = new newdb;
 
+    protected $newdb;
+
+  public function setUp(){
+      $path = '/var/www/sites/all/modules/custom/tripal_test_tests/';
+      //create a object
+    //  var_dump('1');
+      $this->instance = $path;
   }
 
-//  public function TearDown(){
-//      unset($this->instance);
-//
-//  }
+  public function TearDown(){
+      unset($this->instance);
+  }
 
   public function test_tripal_add_job()
   {
@@ -48,6 +52,9 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
       $test_job_id = $query->fetchField();
       $this->assertTrue($test_job_id == $job_id, 'It should return TRUE');
 
+    //  var_dump($test_job_id);
+     return $this->newdb->$test_job_id;
+
 
 //      // TODO: the remaining tests fail because the tripal_add_job() function needs fixes
 //      // but until then and while debugging we'll skip them.
@@ -58,14 +65,12 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 //      $this->assertTrue($job_id02, 'Case #5: It should return FALSE if the name is not provided');
 
   }
-
     public function test_get_active_jobs_function() {
 
         $job_get_active_jobs = uniqid('tripal_get_active_jobs');
         $job_get_active = tripal_get_active_jobs($job_get_active_jobs);
         $this->assertFalse($job_get_active, 'Case #1: It should return false (bool)');
 
-        var_dump($job_get_active_jobs);
         $sql = "
         SELECT * FROM {tripal_jobs} TJ
         WHERE TJ.end_time IS NULL and TJ.modulename = :modulename ";
@@ -78,17 +83,18 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
         $job_active = $query->fetchField();
         $this->assertTrue($job_active == $job_get_active, 'It should return TRUE. It could not find an active job.');
 
-        //var_dump($job_active);
-        return;
+        return $this->newdb->$job_active;
     }
 
-
-
-
+//
 //    // Case #5: What if the job name isn't provided. The function
 //    // should return FALSE instead of a job id.
-//    $job_id02 = tripal_add_job('', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-//    $this->assertFalse($job_id02, 'Case #5: It should return FALSE if the name is not provided');
+//$job_id02 = tripal_add_job('', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 10);
+//$this->assertFalse($job_id02, 'Case #5: It should return FALSE if the name is not provided');
+//
+//return $this->newdb->$job_id02;
+
+
 //
 //    // Case #7: What if an empty callback is provided. The function
 //    // should return FALSE if no callback is provided.

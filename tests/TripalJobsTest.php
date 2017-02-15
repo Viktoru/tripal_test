@@ -19,7 +19,6 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     unset($this->instance);
   }
 
-
   public function test_tripal_add_job() {
     global $user;
     // Case #3:  Submit a job successfully and receive a job id.
@@ -88,7 +87,6 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $this->newdb->$job_active;
   }
 
-
   public function test_tripal_cancel_job() {
 
     $query = db_query("SELECT * FROM {tripal_jobs} WHERE status ='Cancelled'");
@@ -103,7 +101,6 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
       $this->assertFalse(FALSE);
       var_dump(FALSE);
     }
-
 
   }
 
@@ -129,8 +126,24 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
     public function test_tripal_get_job_start(){
 
+      $q = db_query("SELECT * FROM {tripal_jobs} WHERE start_time > 0");
 
+      $arg_result = array(
+        ':start_time' => 'start_time'
+      );
+      $query = db_query($q, $arg_result);
+      $test_job_q = $query->fetchField();
 
+      if ($test_job_q > 0) {
+        $this->assertTrue(is_numeric($test_job_q), 'It should returns TRUE.');
+
+      } if ($test_job_q == NULL) {
+        $this->assertTrue(is_null($test_job_q), 'It should returns TRUE. NULL.');
+
+      } if ($test_job_q == '') {
+        $this->assertTrue(empty($test_job_que), 'It should returns TRUE. Empty');
+
+      }
     }
 
 

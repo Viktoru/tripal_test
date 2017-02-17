@@ -321,3 +321,5 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 //    $job_id10 = tripal_add_job('Test Job Case #14', '', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 //    $this->assertFalse($job_id10, 'Case #14: If the modulename is empty it should return FALSE');
 //	}
+
+}

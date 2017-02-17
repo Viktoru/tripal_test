@@ -25,7 +25,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $args = array();
     $job_name = uniqid('tripal_test_job');
     $job_id = tripal_add_job($job_name, 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-    $this->assertTrue(is_numeric($job_id), 'Case #3: It should return a numeric job ID.');
+    $this->assertTrue(is_numeric($job_id), 'Case #3: It should returns a numeric job ID.');
 
     // Case #6: A new job was added to the database table.
     $sql = "
@@ -62,7 +62,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
     $job_get_active_jobs = uniqid('tripal_get_active_jobs');
     $job_get_active = tripal_get_active_jobs($job_get_active_jobs);
-    $this->assertFalse($job_get_active, 'Case #1: It should return false (bool)');
+    $this->assertFalse($job_get_active, 'Case #1: It should returns false (bool)');
 
     $sql = "
         SELECT * FROM {tripal_jobs} TJ
@@ -88,23 +88,50 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
   }
 
   public function test_tripal_cancel_job() {
+    // Global url
+    $url = 'admin/tripal/tripal_jobs';
+    return $url;
 
-    $query = db_query("SELECT * FROM {tripal_jobs} WHERE status ='Cancelled'");
-    $num_rows = $query->rowCount();
-    $job_cancel_total = $num_rows;
+    // Return hexadecimal to decimal.
+    // Next, return part of a string.
+    // Finally, generate an unique ID.
+    $job_id = hexdec(substr(uniqid('job_id'), 0,8));
 
-    if ($job_cancel_total >= 1) {
-      $this->assertTrue(TRUE);
-      var_dump(TRUE);
+    $sql = "SELECT * FROM {tripal_jobs} WHERE job_id = :job_id";
+    $results = db_query($sql, array(':job_id' => $job_id));
+    $job = $results->fetchObject();
+
+    $job_cancel = tripal_get_active_jobs($job_id, [$redirect = TRUE]);
+
+    if($job->start_time > 0){
+      $this->assertTrue($job_cancel, 'Job_id cancelled');
+    } else {
+      $this->assertFalse($job_cancel, 'Job_id cannot be cancelled. It is in progress or has finished.');
     }
-    else {
-      $this->assertFalse(FALSE);
-      var_dump(FALSE);
+    if ($redirect){
+      $this->assertTrue($this->$url, TRUE);
+
     }
+// Alternative $query
+//    $query = db_query("SELECT * FROM {tripal_jobs} WHERE status ='Cancelled'");
+//    $num_rows = $query->rowCount();
+//    $job_cancel_total = $num_rows;
+//
+//    if ($job_cancel_total >= 1) {
+//      $this->assertTrue(TRUE);
+//      var_dump(TRUE);
+//    }
+//    else {
+//      $this->assertFalse(FALSE);
+//      var_dump(FALSE);
+//    }
 
   }
 
   public function test_tripal_get_job_end() {
+
+    $job = tripal_get_job_end('job');
+
     $q = db_query("SELECT * FROM {tripal_jobs} WHERE end_time > 0");
 
     $arg_result = array(
@@ -115,11 +142,11 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
     if ($test_job_id > 0) {
       $this->assertTrue(TRUE);
-      var_dump($test_job_id, 'It should be TRUE.');
+     // var_dump($test_job_id, 'It should return TRUE.');
     }
     else {
       $this->assertFalse(FALSE);
-      var_dump($test_job_id, 'It should be FALSE.');
+    //  var_dump($test_job_id, 'It should return FALSE.');
     }
 
   }
@@ -135,91 +162,60 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
       $test_job_q = $query->fetchField();
 
       if ($test_job_q > 0) {
-        $this->assertTrue(is_numeric($test_job_q), 'It should returns TRUE.');
+        $this->assertTrue(is_numeric($test_job_q), 'It should return TRUE.');
 
       } if ($test_job_q == NULL) {
-        $this->assertTrue(is_null($test_job_q), 'It should returns TRUE. NULL.');
+        $this->assertTrue(is_null($test_job_q), 'It should return TRUE. NULL.');
 
       } if ($test_job_q == '') {
-        $this->assertTrue(empty($test_job_que), 'It should returns TRUE. Empty');
+        $this->assertTrue(empty($test_job_que), 'It should return TRUE. Empty');
 
       }
     }
 
+    public function test_tripal_get_job(){
 
+    $job_id = hexdec(substr(uniqid('get_job_id'), 0,8));
+    $job_get_id = tripal_get_job($job_id);
 
+    $r_job_id = $job_get_id->job_id;
+//    $r_uid = $job_get_id->uid;
+//    $r_job_name = $job_get_id->job_name;
+//    $r_modulename_= $job_get_id->modulename;
+//    $r_callback = $job_get_id->callback;
+//    $r_status = $job_get_id->status;
+//    $r_submit_date = $job_get_id->submit_date;
+//    $r_start_time = $job_get_id->start_time;
+//    $r_end_time = $job_get_id->end_time;
+//    $r_priority = $job_get_id->priority;
 
+    $this->assertTrue($r_job_id > 0, 'Case Job_id #1: It should return True.');
+    $this->assertFalse($r_job_id < 0, 'Case Job_id #1: It should return False.');
+    $this->assertEmpty('', 'Case Job_id #1: It should return True.');
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- // $this->newdb->$job_cancel_active;
-//}
 //
-//public function test_tripal_get_job(){
-//
-//    $job_get_jobs = uniqid('tripal_get_job');
-//    $job_getjobs = tripal_cancel_job($job_get_jobs);
-//    $this->assertTrue($job_getjobs, 'Case #1: It should return false (bool)');
-//
-//    $sql = "
-//        SELECT j.* FROM {tripal_jobs} j
-//        WHERE j.job_id=:job_id ";
-//
-//    $args = array(
-//      ':job_id' => $job_get_jobs
-//    );
-//
-//    $query = db_query($sql, $args);
-//    $job_get_active = $query->fetchField();
-//
-//    var_dump($job_get_active);
-//
-//  }
+//    $this->assertTrue($r_status === 'Completed', 'Case status #1: It should return true.');
+//    $this->assertFalse($r_status !== 'Completed', 'Case status #1: It should return False.');
+//    $this->assertFalse($r_start_time < 0, 'Case start time #1: It should return False.');
+//    $this->assertTrue($r_start_time > 0, 'Case start time #1: It should return True.');
+//    $this->assertEmpty('', 'Case start time #1: It should return True.');
+
+
+  }
+
+  public function test_tripal_get_job_submit_date(){
+   // $job = "1486328495";
+    $job_submit_date = tripal_get_job_submit_date('job');
+    $r_job_id = format_date($job_submit_date->submit_date);
+  $this->assertFalse($r_job_id < 0, 'Case job submit date #1: It should return True.');
+
+  }
 
 }
 
 
 
 
-//      // TODO: the remaining tests fail because the tripal_add_job() function needs fixes
-//      // but until then and while debugging we'll skip them.
-//
-//      // Case #5: What if the job name isn't provided. The function
-//      // should return FALSE instead of a job id.
-//      $job_id02 = tripal_add_job('', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-//      $this->assertTrue($job_id02, 'Case #5: It should return FALSE if the name is not provided');
-
-
-//    public function test_add_job_2(){
-//      global $user;
-//      $args = array();
-//
-//    // Case #5: What if the job name isn't provided. The function
-//      // should return FALSE instead of a job id.
-//      $job_id02 = tripal_add_job('', 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-//      $this->assertFalse($job_id02, 'Case #5: It should return FALSE if the name is not provided');
-//
-//      return $this->newdb->$job_id02;
-//
-//    }
-
-
-
-//
 //    // Case #7: What if an empty callback is provided. The function
 //    // should return FALSE if no callback is provided.
 //    $job_id03 = tripal_add_job('Test Job Case #7', 'modulename', '', $args, $user->uid, 10);

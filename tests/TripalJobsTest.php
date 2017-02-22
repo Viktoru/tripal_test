@@ -361,18 +361,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
   }
 
-  public function test_tripal_rerun_job(){
-    global $user;  $args = array();
 
-    // Setup: Submit a job successfully and receive a job ID
-    $job_name = uniqid('tripal_test_job_rerun');
-    $job_id = tripal_add_job($job_name, 'tripal_test_is_job_rerun', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-
-    // is an object.
-    var_dump($job_id[0]);
-
-
-  }
 
 
 }

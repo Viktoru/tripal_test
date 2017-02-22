@@ -241,7 +241,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
   }
   /**
-   * Test the tripal_get_job_start() function. FROM HERE
+   * Test the tripal_get_job_start() function.
    */
 
   public function test_tripal_get_job_start(){
@@ -312,15 +312,15 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     db_query($sql, $args);
 
     // Setup SELECT statement: If a job was submitted and the status is running, it should return
-// the job is Running.
+    // the job is Running.
     $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id);
     $status_return = db_query($sql, $args)->fetchField();
-    // Case #1: If a job was submitted, it should return a date.
+    // Case #1: If a job was submitted and run, the status should show running.
     $this->assertTrue($status_return == 'Running', "Case #1: A Job is running, it should return TRUE.");
 
     // Setup UPDATE statement: Updating the status from running to error.
-// If this happened, it should return a status error, the start_time and the end_time plus the error_message.
+    // If this happened, it should return a status error, the start_time and the end_time plus the error_message.
     $sql = "UPDATE {tripal_jobs}
             SET start_time = :start_time, end_time = :end_time, status = 'Error', error_msg = 'Job has terminated unexpectedly'
             WHERE job_id = :job_id";
@@ -369,7 +369,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $job_id = tripal_add_job($job_name, 'tripal_test_is_job_rerun', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
     // is an object.
-    var_dump($job_id);
+    var_dump($job_id[0]);
 
 
   }

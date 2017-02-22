@@ -80,20 +80,23 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $job_id10 = tripal_add_job('Test Job Case #10', '', 'tripal_test_jobs_callback', $args, $user->uid, 10);
     $this->assertFalse($job_id10, 'Case #10: If the modulename is empty it should return FALSE');
 
-    // Case #10: What if the callback is in another file, but the $includes
+    // Case #11: What if the callback is in another file, but the $includes
     // argument doesn't specify where they file is.  We should get a FAlSE.
-    $job_id = tripal_add_job('Test Job Case #10', 'modulename', 'tripal_test_jobs_callback2', $args, $user->uid, 10);
-    $this->assertFalse($job_id04, 'Case #10: If a callback but is in another file that is not in scope then it should return FALSE');
+    $job_id11 = tripal_add_job('Test Job Case #11', 'modulename', 'tripal_test_jobs_callback2', $args, $user->uid, 10);
+    $this->assertFalse($job_id11, 'Case #11: If a callback but is in another file that is not in scope then it should return FALSE');
 
-    // Case #11: Same test as $10 but this time with the file in the $includes.
+    // Case #12: Same test as $10 but this time with the file in the $includes.
     // now we should get a valid job_id.
     $includes = array("./files/dummy_callback.inc");
-    $job_id = tripal_add_job('Test Job Case #11', 'modulename', 'tripal_test_jobs_callback2', $args, $user->uid, 10, $includes);
-    $this->assertFalse($job_id04, 'Case #11: If a callback but is in another file that is not in scope then it should return FALSE');
+    $job_id12 = tripal_add_job('Test Job Case #12', 'modulename', 'tripal_test_jobs_callback2', $args, $user->uid, 10, $includes);
+    $this->assertFalse($job_id12, 'Case #12: If a callback but is in another file that is not in scope then it should return FALSE');
 
-    // Case #11: If we give a different user ID from the active user does
+    // Case #13: If we give a different user ID from the active user does
     // the job properly get associated with the requested user.
-    // TODO: add this case.
+    global $username;
+    $job_id13 = tripal_add_job('Test Job Case #13', 'modulename', 'tripal_test_jobs_callback2', $args, $username->uid, 10);
+    $this->assertFalse($job_id13, 'Case #13: If we give a different user ID');
+
   }
 
   /**

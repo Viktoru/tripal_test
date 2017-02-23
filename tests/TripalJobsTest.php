@@ -273,14 +273,17 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $job_name = uniqid('tripal_test_job');
     $job_id = tripal_add_job($job_name, 'tripal_test_get_job_submit_date', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
-    // Case #1: If a job was submitted successfully, it should return a date added to the queue.
-    $this->assertTrue(is_numeric($job_id), 'Case #1: If a job was submitted successfully, it should return a date added to the queue.');
+    // Get a job from tripal_get_job function. The job_id #, it should return an job object.
+    $job_object = tripal_get_job($job_id);
 
-    // Setup SELECT statement: If a job was submitted, it should return a date.
-    $sql = "SELECT submit_date FROM {tripal_jobs} WHERE job_id = :job_id";
-    $args = array(':job_id' => $job_id);
-    $submit_date = db_query($sql, $args)->fetchField();
-    $this->assertTrue(is_numeric($submit_date), 'Case #1: If a job was submitted successfully. It should return a numeric date.');
+    // Expecting a submit_date date
+    $job_submit_date = tripal_get_job_submit_date($job_object);
+    // Format $job_submit_date to a numeric submit_date
+    $format_submit_date = time($job_submit_date);
+
+    // Case #1: Retrive an submit_date, it should retrieve an numeric submit_date date.
+    $this->assertTrue(is_numeric($format_submit_date), 'Case #1: If a job was submitted successfully. It should return a numeric submit_date.');
+
 
   }
 

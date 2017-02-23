@@ -234,10 +234,13 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $get_job = tripal_get_job($job_id);
 
     // Runs tripal_get_job_end. It should return a end_time date
+    // The output from the end_time date is "Thu, 02/23/2017 - 12:50".
     $return_end_time = tripal_get_job_end($get_job);
+    // Format a date to a numeric time.
+    $format_date = time($return_end_time);
 
-    // the output from the end_time date is "Thu, 02/23/2017 - 12:50".
-    var_dump($return_end_time);
+    // Case #1: Retriving an end_time., it should retrieve an end_time date.
+    $this->assertTrue(is_numeric($format_date), 'Case #1: If a job was submitted successfully. It should return a numeric end_time date.');
 
   }
   /**
@@ -277,7 +280,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $sql = "SELECT submit_date FROM {tripal_jobs} WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id);
     $submit_date = db_query($sql, $args)->fetchField();
-    $this->assertTrue(is_numeric($submit_date), 'Case #1: If a job was submitted successfully. It should return a date.');
+    $this->assertTrue(is_numeric($submit_date), 'Case #1: If a job was submitted successfully. It should return a numeric date.');
 
   }
 

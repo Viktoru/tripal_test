@@ -319,11 +319,10 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $job_name = uniqid('tripal_test_job_launch');
     $job_id = tripal_add_job($job_name, 'tripal_test_launch_job', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
-    var_dump($job_id);
-    tripal_launch_job([$do_pareallel = 0], [$job_id = NULL]);
     // We will run the job manually.
     // Manually through a command-line call.
     // drush trp-run-jobs --user=administrator
+    tripal_launch_job([$do_pareallel = 0], [$job_id = NULL]);
 
     // OR we will run the job
     tripal_launch_job([$do_pareallel = 1]);

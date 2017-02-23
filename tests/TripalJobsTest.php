@@ -237,7 +237,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
     $job = format_date($timestamp, [$type = 'medium', $format = '', $timezone = NULL, $langcode = NULL]);
 
-    var_dump($job);
+   // var_dump($job);
 
     // not completed
     tripal_get_job_end($job);
@@ -255,22 +255,12 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $job_name = uniqid('tripal_test_job');
     $job_id = tripal_add_job($job_name, 'tripal_test_get_job_start', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
-    // Setup SELECT statement: If a job was submitted, the status should return TRUE or the status is "Waiting".
-    // Case #1: If a job was submitted and the status is waiting. It should return TRUE.
-    $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
-    $args = array(':job_id' => $job_id);
-    $status = db_query($sql, $args)->fetchField();
-    $this->assertTrue($status == 'Waiting', 'Case #1: If a job was submitted and the status is waiting only then you can cancel it.');
+    // Get a job from tripal_get_job function. The job_id #. It should return an job object.
+    $get_job = tripal_get_job($job_id);
 
-    // tripal_cancel_job function to cancel my $job_id.
-    tripal_cancel_job($job_id, FALSE);
-
-    // Setup SELECT statement: If a job was cancelled, the status should return "Cancelled".
-    // Case #2: If a job was cancelled, it should return TRUE.
-    $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
-    $args = array(':job_id' => $job_id);
-    $status2 = db_query($sql, $args)->fetchField();
-    $this->assertTrue($status2 == 'Cancelled', 'Case #2: It should return TRUE.');
+    // Runs tripal_get_job_start, if it was already running, it should return "Not Yet Started."
+    $return_start_time = tripal_get_job_start($get_job);
+    $this->assertTrue($return_start_time == 'Not Yet Started', 'Case #1: It should return "Not Yet Started"');
 
   }
 

@@ -93,9 +93,6 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
     // Case #13: If we give a different user ID from the active user does
     // the job properly get associated with the requested user.
-    global $username;
-    $job_id13 = tripal_add_job('Test Job Case #13', 'modulename', 'tripal_test_jobs_callback2', $args, $username->uid, 10);
-    $this->assertFalse($job_id13, 'Case #13: If we give a different user ID');
 
   }
 
@@ -193,7 +190,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
   }
 
   /**
-   * Tests the tripal_get_job() function.
+   * Tests the tripal_get_job() function. --
    */
   public function test_tripal_get_job(){
     global $user;
@@ -203,20 +200,20 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $job_name = uniqid('tripal_test_job');
     $job_id = tripal_add_job($job_name, 'tripal_test_add_get_job', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
-    // CCase #1: It should return a numeric  job ID.
+    // Case #1: It should return a numeric job ID.
     $this->assertTrue(is_numeric($job_id), 'Case #1: It should returns a numeric job ID.');
 
-    // Setup UPDATE: It will update tripal_jobs start_time and end_time plus status.
+    // Setup UPDATE: It will update tripal_jobs start_time and end_time, progress plus status.
     // If a job was submitted successfully and the status was completed, it should return TRUE.
-    $sql = "UPDATE {tripal_jobs} SET start_time = :start, end_time = :end_time, status = 'Completed' WHERE job_id = :job_id";
+    $sql = "UPDATE {tripal_jobs} SET start_time = :start, end_time = :end_time, status = 'Completed', progress = '100' WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id, ':start' => time(), ':end_time' => time());
-    $status = db_query($sql, $args);
+    db_query($sql, $args);
 
-    // Case #2: If a job was submitted, the status of that job was completed.
+    // Case #2: If a job was submitted successfully, the status of that job was completed.
     $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id);
     $status = db_query($sql, $args)->fetchField();
-    $this->assertTrue($status == 'Completed', "Case #2: Job was successfully completed.");
+    $this->assertTrue($status == 'Completed', "Case #2: Job was successfully completed. It should retrieve information about a job.");
 
   }
   /**
@@ -225,22 +222,21 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
   public function test_tripal_get_job_end(){
     global $user;  $args = array();
 
-    //  Setup: Submit a job successfully and receive a job ID
+    // Setup: Submit a job successfully and receive a job ID
     $job_name = uniqid('tripal_test_job');
     $job_id = tripal_add_job($job_name, 'tripal_test_get_job_end', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
-    // Setup UPDATE: It will update tripal_jobs start_time and end_time plus status.
+    // Setup UPDATE: It will update tripal_jobs, start_time and end_time plus status.
     // If a job was submitted successfully and the status was completed, it should return TRUE.
-    $sql = "UPDATE {tripal_jobs} SET start_time = :start, end_time = :end_time, status = 'Completed' WHERE job_id = :job_id";
+    $sql = "UPDATE {tripal_jobs} SET start_time = :start, end_time = :end_time, status = 'Completed', progress = '100' WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id, ':start' => time(), ':end_time' => time());
-    $status = db_query($sql, $args);
+    db_query($sql, $args);
 
-    // Case #1: If a job was submitted successfully. The status of that job was completed and the end_time was added, it
-    // should return TRUE.
+    // Case #1: If a job was submitted successfully, it should return the end time for a job.
     $sql = "SELECT end_time FROM {tripal_jobs} WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id);
     $end_time = db_query($sql, $args)->fetchField();
-    $this->assertTrue(is_numeric($end_time), 'Case #1: It should return TRUE, if end_time is not a numeric #.');
+    $this->assertTrue(is_numeric($end_time), 'Case #1: It should return TRUE, if end_time is not a numeric date.');
 
   }
   /**
@@ -255,23 +251,21 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $job_id = tripal_add_job($job_name, 'tripal_test_get_job_start', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
     // Setup SELECT statement: If a job was submitted, the status should return TRUE or the status is "Waiting".
+    // Case #1: If a job was submitted and the status is waiting. It should return TRUE.
     $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id);
     $status = db_query($sql, $args)->fetchField();
-
-    // Case #1: If a job was submitted and the status is waiting only then you can cancel it. It should return TRUE.
     $this->assertTrue($status == 'Waiting', 'Case #1: If a job was submitted and the status is waiting only then you can cancel it.');
 
-    // Calling tripal_cancel_job function to cancel my $job_id.
+    // tripal_cancel_job function to cancel my $job_id.
     tripal_cancel_job($job_id, FALSE);
 
-    // Setup SELECT statement: If a job was cancelled, the status should return TRUE or "Cancelled".
+    // Setup SELECT statement: If a job was cancelled, the status should return "Cancelled".
+    // Case #2: If a job was cancelled, it should return TRUE.
     $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id);
-    $status = db_query($sql, $args)->fetchField();
-
-    // Case #2: If a job was cancelled, it should return TRUE.
-    $this->assertTrue($status == 'Cancelled', 'Case #1: If should return TRUE if status show cancelled.');
+    $status2 = db_query($sql, $args)->fetchField();
+    $this->assertTrue($status2 == 'Cancelled', 'Case #2: It should return TRUE.');
 
   }
 
@@ -292,9 +286,6 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $sql = "SELECT submit_date FROM {tripal_jobs} WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id);
     $submit_date = db_query($sql, $args)->fetchField();
-
-    // Case #2: How do I know if a job was submitted successfully? If a job was submitted,
-    // it should return a date or TRUE.
     $this->assertTrue(is_numeric($submit_date), 'Case #1: If a job was submitted successfully. It should return a date.');
 
   }
@@ -330,7 +321,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $args = array(':job_id' => $job_id, ':start_time' => time(), ':end_time' => time());
     db_query($sql, $args);
 
-    // Setup SELECT statement: It should select the status of the job and it should return an error to TRUE.
+    // Setup SELECT statement: It should select the status of the job and it should return an error.
     $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id);
     $status_error = db_query($sql, $args)->fetchField();
@@ -341,30 +332,42 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
   }
 
   public function test_tripal_launch_job(){
+    global $user;  $args = array();
 
-    // Overall if jobs are running the status should change to "Cancelled" before I add a new job.
-    // Otherwise I can't continue.
-    $sql1 = "UPDATE {tripal_jobs}
-            SET start_time = :start_time, end_time = :end_time, status = 'Cancelled', error_msg = 'Job has terminated unexpectedly'
-            WHERE status = 'Running'";
-    $args1 = array(':start_time' => time(), ':end_time' => time());
-    $status_cancelled = db_query($sql1, $args1);
-    $this->assertTrue(is_object($status_cancelled), 'Case #1: It should return TRUE');
+    // Setup: Submit a job successfully and receive a job ID
+    $job_name = uniqid('tripal_test_job_launch');
+    $job_id = tripal_add_job($job_name, 'tripal_test_launch_job', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
-    //  Setup SELECT statement: It should check if any jobs are currently running..
-    $sql = "SELECT * FROM {tripal_jobs} WHERE status = 'Running' ";
-    $status_waiting2 = db_query($sql)->fetchField();
-    // Case #2: Get all jobs are currently not running.
-    $this->assertTrue(empty($status_waiting2), 'Case #6: It should return TRUE.');
+    // SELECT Statement: If a job is running, it should return TRUE.
+    $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
+    $args = array(':job_id' => $job_id);
+    $status_waiting = db_query($sql, $args)->fetchField();
+    $this->assertTrue($status_waiting == 'Waiting', 'Case #1: It should return TRUE.');
 
-    // Case #3: We want to make sure a job is not running. Call the tripal_is_job_running function to see
-    // if a job is running. It should return TRUE if the is_job_running is empty.
-    $is_job_running = tripal_is_job_running();
-    $this->assertTrue(empty($is_job_running), 'Case #6: It should return TRUE.');
+    // If a job is not running. It run a job in parallel.
+    tripal_launch_job([$do_parallel = 1], $job_id);
 
   }
 
+  public function test_tripal_rerun_job(){
+//    global $user;  $args = array();
+//
+//    // Setup: Submit a job successfully and receive a job ID
+//    $job_name = uniqid('tripal_test_job_rerun3');
+//    $job_id = tripal_add_job($job_name, 'tripal_test_is_job_rerun3', 'tripal_test_jobs_callback', $args, $user->uid, 10);
+//
+//    // Update tripal_job table: Adding an error to the status, a dates to the start_time, end_time and an error message.
+//    $sql = "UPDATE {tripal_jobs}
+//            SET start_time = :start_time, end_time = :end_time, status = 'Error', error_msg = 'Job has terminated unexpectedly'
+//            WHERE job_id = :job_id";
+//    $args = array(':job_id' => $job_id, ':start_time' => time(), ':end_time' => time());
+//    $job_error = db_query($sql, $args);
 
+//    $var = tripal_rerun_job($job_id, [$goto_jobs_page = TRUE]);
+//
+//    var_dump($var);
+
+  }
 
 
 }

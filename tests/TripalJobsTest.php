@@ -338,7 +338,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $job_name = uniqid('tripal_test_job_launch');
     $job_id = tripal_add_job($job_name, 'tripal_test_launch_job', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
-    // SELECT Statement: If a job is running, it should return TRUE.
+    // SELECT Statement: If a job is waiting, it should return TRUE.
     $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id);
     $status_waiting = db_query($sql, $args)->fetchField();

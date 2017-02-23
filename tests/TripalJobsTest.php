@@ -353,7 +353,6 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $status_waiting = db_query($sql, $args)->fetchField();
     $this->assertTrue($status_waiting == 'Completed', 'Case #1: It should return Completed.');
 
-
     // Setup: Submit a second job successfully and receive a job ID
     $job_name = uniqid('tripal_test_job_launch_2');
     $job_id = tripal_add_job($job_name, 'tripal_test_launch_job_2', 'tripal_test_jobs_callback', $args, $user->uid, 10);
@@ -364,22 +363,29 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
   }
 
   public function test_tripal_rerun_job(){
-//    global $user;  $args = array();
-//
-//    // Setup: Submit a job successfully and receive a job ID
-//    $job_name = uniqid('tripal_test_job_rerun3');
-//    $job_id = tripal_add_job($job_name, 'tripal_test_is_job_rerun3', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-//
-//    // Update tripal_job table: Adding an error to the status, a dates to the start_time, end_time and an error message.
-//    $sql = "UPDATE {tripal_jobs}
-//            SET start_time = :start_time, end_time = :end_time, status = 'Error', error_msg = 'Job has terminated unexpectedly'
-//            WHERE job_id = :job_id";
-//    $args = array(':job_id' => $job_id, ':start_time' => time(), ':end_time' => time());
-//    $job_error = db_query($sql, $args);
+    global $user;  $args = array();
 
-//    $var = tripal_rerun_job($job_id, [$goto_jobs_page = TRUE]);
-//
-//    var_dump($var);
+    // Setup: Submit a job successfully and receive a job ID
+    $job_name = uniqid('tripal_test_job_rerun_1');
+    $job_id = tripal_add_job($job_name, 'tripal_test_is_job_rerun_1', 'tripal_test_jobs_callback', $args, $user->uid, 10);
+
+    // Setup UPDATE statement: Updating the status from running to error.
+    // If this happens, it should return a status error, the start_time, the end_time plus the error_message.
+    $sql = "UPDATE {tripal_jobs}
+            SET start_time = :start_time, end_time = :end_time, status = 'Error', error_msg = 'Job has terminated unexpectedly'
+            WHERE job_id = :job_id";
+    $args = array(':job_id' => $job_id, ':start_time' => time(), ':end_time' => time());
+    db_query($sql, $args);
+
+    // Setup SELECT statement: It should select the status of the job and return an error.
+    $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
+    $args = array(':job_id' => $job_id);
+    $status_error = db_query($sql, $args)->fetchField();
+
+    // Case #1: If a job has terminated unexpectedly, it should return a status error.
+    $this->assertTrue($status_error == 'Error', "Case #1: A Job has terminated unexpectedly, it should return Error.");
+
+
 
   }
 

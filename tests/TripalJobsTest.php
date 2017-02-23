@@ -230,18 +230,14 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $args = array(':job_id' => $job_id, ':start' => time(), ':end_time' => time());
     db_query($sql, $args);
 
-    // Setup SELECT statement: If a job was submitted, it should return a end_time date.
-    $sql = "SELECT end_time FROM {tripal_jobs} WHERE job_id = :job_id";
-    $args = array(':job_id' => $job_id);
-    $timestamp = db_query($sql, $args)->fetchField();
+    // It should return an job object describing a job.
+    $get_job = tripal_get_job($job_id);
 
-    $job = format_date($timestamp, [$type = 'medium', $format = '', $timezone = NULL, $langcode = NULL]);
+    // Runs tripal_get_job_end. It should return a end_time date
+    $return_end_time = tripal_get_job_end($get_job);
 
-   // var_dump($job);
-
-    // not completed
-    tripal_get_job_end($job);
-
+    // the output from the end_time date is "Thu, 02/23/2017 - 12:50".
+    var_dump($return_end_time);
 
   }
   /**
@@ -255,7 +251,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $job_name = uniqid('tripal_test_job');
     $job_id = tripal_add_job($job_name, 'tripal_test_get_job_start', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
-    // Get a job from tripal_get_job function. The job_id #. It should return an job object.
+    // Get a job from tripal_get_job function. The job_id #, it should return an job object.
     $get_job = tripal_get_job($job_id);
 
     // Runs tripal_get_job_start, if it was already running, it should return "Not Yet Started."

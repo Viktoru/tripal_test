@@ -190,7 +190,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
   }
 
   /**
-   * Tests the tripal_get_job() function. --
+   * Tests the tripal_get_job() function. -
    */
   public function test_tripal_get_job(){
     global $user;
@@ -209,11 +209,9 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $args = array(':job_id' => $job_id, ':start' => time(), ':end_time' => time());
     db_query($sql, $args);
 
-    // Case #2: If a job was submitted successfully, the status of that job was completed.
-    $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
-    $args = array(':job_id' => $job_id);
-    $status = db_query($sql, $args)->fetchField();
-    $this->assertTrue($status == 'Completed', "Case #2: Job was successfully completed. It should retrieve information about a job.");
+    // It should return an object describing a job.
+    $job_id_retrieve_a_object = tripal_get_job($job_id);
+    $this->assertTrue(is_object($job_id_retrieve_a_object), "Case #1: It should retrieve information about a job.");
 
   }
   /**

@@ -385,6 +385,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     // Case #1: If a job has terminated unexpectedly, it should return a status error.
     $this->assertTrue($status_error == 'Error', "Case #1: A Job has terminated unexpectedly, it should return Error.");
 
+    // Case #2: If the status return an error, we can re-run it.
 
 
   }

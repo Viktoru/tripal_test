@@ -344,7 +344,21 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $status_waiting = db_query($sql, $args)->fetchField();
     $this->assertTrue($status_waiting == 'Waiting', 'Case #1: It should return TRUE.');
 
-    // If a job is not running. It run a job in parallel.
+    // If a job is not running. Get a job that have not started.
+    tripal_launch_job([$do_parallel = 1], $job_id);
+
+    // SELECT Statement: If a job is Completed, it should return TRUE.
+    $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
+    $args = array(':job_id' => $job_id);
+    $status_waiting = db_query($sql, $args)->fetchField();
+    $this->assertTrue($status_waiting == 'Completed', 'Case #1: It should return Completed.');
+
+
+    // Setup: Submit a second job successfully and receive a job ID
+    $job_name = uniqid('tripal_test_job_launch_2');
+    $job_id = tripal_add_job($job_name, 'tripal_test_launch_job_2', 'tripal_test_jobs_callback', $args, $user->uid, 10);
+
+    // If a job is not running. Get a job that have not started.
     tripal_launch_job([$do_parallel = 1], $job_id);
 
   }

@@ -293,7 +293,8 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
   public function test_tripal_is_job_running(){
     global $user;  $args = array();
 
-    // Setup: Submit a job successfully and receive a job ID
+    // Setup: Submit a job successfully and receive a job ID.
+    // A job status is waiting.
     $job_name = uniqid('tripal_test_job');
     $job_id = tripal_add_job($job_name, 'tripal_test_is_job_running', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
@@ -302,29 +303,12 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $args = array(':job_id' => $job_id);
     db_query($sql, $args);
 
-    // Setup SELECT statement: If a job was submitted and the status is running, it should return
-    // the job is Running.
-    $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
-    $args = array(':job_id' => $job_id);
-    $status_return = db_query($sql, $args)->fetchField();
-    // Case #1: If a job was submitted and run, the status should show running.
-    $this->assertTrue($status_return == 'Running', "Case #1: A Job is running, it should return TRUE.");
+    // It should return an object
+    $get_a_job_running = tripal_get_job($job_id);
+    $this->assertTrue(is_object($get_a_job_running), 'Case #1: It should have returned an object.');
 
-    // Setup UPDATE statement: Updating the status from running to error.
-    // If this happened, it should return a status error, the start_time and the end_time plus the error_message.
-    $sql = "UPDATE {tripal_jobs}
-            SET start_time = :start_time, end_time = :end_time, status = 'Error', error_msg = 'Job has terminated unexpectedly'
-            WHERE job_id = :job_id";
-    $args = array(':job_id' => $job_id, ':start_time' => time(), ':end_time' => time());
-    db_query($sql, $args);
-
-    // Setup SELECT statement: It should select the status of the job and it should return an error.
-    $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
-    $args = array(':job_id' => $job_id);
-    $status_error = db_query($sql, $args)->fetchField();
-
-    // Case #2: If a job has terminated unexpectedly, it should return a status error.
-    $this->assertTrue($status_error == 'Error', "Case #1: A Job has terminated unexpectedly, it should return Error.");
+    // Checking if a job is running. HELP!
+  //  $is_running_a_job = tripal_is_job_running();
 
   }
 

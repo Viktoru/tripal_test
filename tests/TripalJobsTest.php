@@ -377,7 +377,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $args = array(':job_id' => $job_id, ':start_time' => time(), ':end_time' => time());
     db_query($sql, $args);
 
-    // Setup SELECT statement: It should select the status of the job and return an error.
+    // Setup SELECT statement: If the status retrieve an error, it should return TRUE.
     $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id);
     $status_error = db_query($sql, $args)->fetchField();
@@ -385,8 +385,8 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     // Case #1: If a job has terminated unexpectedly, it should return a status error.
     $this->assertTrue($status_error == 'Error', "Case #1: A Job has terminated unexpectedly, it should return Error.");
 
-    // Case #2: If the status return an error, we can re-run it.
-
+    // Case #2: If the status return an error, we can re-run it manually. Use the command line to re-run it.
+    tripal_rerun_job($job_id, [$goto_jobs_page = TRUE]);
 
   }
 

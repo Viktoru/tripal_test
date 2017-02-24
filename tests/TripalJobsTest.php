@@ -11,6 +11,18 @@ drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
  */
 class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
+  // All jobs created by this function for testing should have the same
+  // prefix so that we can remove them afterwards.
+  private $job_prefix = 'tripal_test_job';
+
+  /**
+   * tearDown called after each function for cleanup of testing data.
+   */
+  public function tearDown() {
+    $sql = "DELETE FROM {tripal_jobs} WHERE job_name LIKE 'tripal_test_job%'";
+    $query = db_query($sql);
+  }
+
   /**
    * Tests the tripal_add_job function().
    */
@@ -19,7 +31,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
     // Case #1:  Submit a job successfully and receive a job id.
     $args = array();
-    $job_name = uniqid('tripal_test_job');
+    $job_name = uniqid($job_prefix);
     $job_id = tripal_add_job($job_name, 'modulename', 'tripal_test_jobs_callback', $args, $user->uid, 10);
     $this->assertTrue(is_numeric($job_id), 'Case #1: It should returns a numeric job ID. Instead recieved: "' . $job_id . '".');
 
@@ -110,7 +122,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
     // Case #2: Does the function return 1 job when only 1 job is present.
     $args = array();
-    $job_name1 = uniqid('tripal_test_job');
+    $job_name1 = uniqid($job_prefix);
     $job_id1 = tripal_add_job($job_name1, $test_module, 'tripal_test_jobs_callback', $args, $user->uid, 10);
     $this->assertTrue(is_numeric($job_id1), 'Case #2: Could not add a job to test the tripal_get_active_jobs() function.');
     $jobs = tripal_get_active_jobs($test_module);
@@ -118,7 +130,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
     // Case #3: Does the function return 2 jobs when two are present.
     $args = array();
-    $job_name2 = uniqid('tripal_test_job');
+    $job_name2 = uniqid($job_prefix);
     $job_id2 = tripal_add_job($job_name2, $test_module, 'tripal_test_jobs_callback', $args, $user->uid, 10);
     $this->assertTrue(is_numeric($job_id2), 'Case #3: Could not add a job to test the tripal_get_active_jobs() function.');
     $jobs = tripal_get_active_jobs($test_module);
@@ -152,7 +164,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
     // Setup: Add a job that we'll later Cancel.
     $args = array();
-    $job_name = uniqid('tripal_test_job');
+    $job_name = uniqid($job_prefix);
     $job_id = tripal_add_job($job_name, 'tripal_test', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
     // Case #1: Cancel the job that was just previously added.  There is no
@@ -169,7 +181,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     // an empty function which will run so fast and mark the job as completed.
     // Also we don't want a dependency on the tripal_launch_job() since it is
     // tested in another test function.
-    $job_name = uniqid('tripal_test_job');
+    $job_name = uniqid($job_prefix);
     $job_id = tripal_add_job($job_name, 'tripal_test', 'tripal_test_jobs_callback', $args, $user->uid, 10);
     $sql = "UPDATE {tripal_jobs} SET start_time = :start, status = 'Running' WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id, ':start' => time());
@@ -197,61 +209,65 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
     //  Setup: Submit a job successfully and receive a job ID
     $args = array();
-    $job_name = uniqid('tripal_test_job');
+    $job_name = uniqid($job_prefix);
     $job_id = tripal_add_job($job_name, 'tripal_test_add_get_job', 'tripal_test_jobs_callback', $args, $user->uid, 10);
+    $this->assertTrue(is_numeric($job_id), 'Setup: It should returns a numeric job ID.');
 
-    // Case #1: It should return a numeric job ID.
-    $this->assertTrue(is_numeric($job_id), 'Case #1: It should returns a numeric job ID.');
+    // Case #1: The function should return an object describing the job.
+    $job = tripal_get_job($job_id);
+    $this->assertTrue(is_object($job), "Case #1: The function should return an object.");
 
-    // Setup UPDATE: It will update tripal_jobs start_time and end_time, progress plus status.
-    // If a job was submitted successfully and the status was completed, it should return TRUE.
-    $sql = "UPDATE {tripal_jobs} SET start_time = :start, end_time = :end_time, status = 'Completed', progress = '100' WHERE job_id = :job_id";
-    $args = array(':job_id' => $job_id, ':start' => time(), ':end_time' => time());
-    db_query($sql, $args);
+    // Case #2:  Did it give us the correct job back.
 
-    // It should return an object describing a job.
-    $job_id_retrieve_an_object = tripal_get_job($job_id);
-    $this->assertTrue(is_object($job_id_retrieve_an_object), "Case #1: It should retrieve information about a job.");
+    // Case #3:
 
   }
   /**
    * Tests the tripal_get_job_end() function.
+   *
+   * This is a deprecated function for Tripal v3.
    */
   public function test_tripal_get_job_end(){
     global $user;  $args = array();
 
     // Setup: Submit a job successfully and receive a job ID
-    $job_name = uniqid('tripal_test_job');
+    $job_name = uniqid($job_prefix);
     $job_id = tripal_add_job($job_name, 'tripal_test_get_job_end', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-
     // Setup UPDATE: It will update tripal_jobs, start_time and end_time plus status.
     // If a job was submitted successfully and the status was completed, it should return the end_time.
     $sql = "UPDATE {tripal_jobs} SET start_time = :start, end_time = :end_time, status = 'Completed', progress = '100' WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id, ':start' => time(), ':end_time' => time());
     db_query($sql, $args);
-
     // It should return an job object describing a job.
-    $get_job = tripal_get_job($job_id);
+    $job = tripal_get_job($job_id);
 
-    // Runs tripal_get_job_end. It should return a end_time date
+    // Case #1:  Retrieves the Human-readable version of the job's end time.
     // The output from the end_time date is "Thu, 02/23/2017 - 12:50".
-    $return_end_time = tripal_get_job_end($get_job);
-    // Format a date to a numeric time.
-    $format_date = time($return_end_time);
+    $end_time = tripal_get_job_end($job);
+    $expected = format_date($job->end_time);
+    $this->asserTrue($expected == $end_time, "Case #1: The returned end time does not match what's expected: '$expected' != '$end_type'");
 
-    // Case #1: Retriving an end_time., it should retrieve an end_time date.
-    $this->assertTrue(is_numeric($format_date), 'Case #1: If a job was submitted successfully. It should return a numeric end_time date.');
+    // Case #2: Test if an empty job object is passed. The function should
+    // should return an empty string.
+
+    // Case #3:  Test if a job is an object but it's missing the end_time
+    // member variable.  The function should return an empty string.
+    $temp_job = $job;
+    unset($temp_job->end_time);
+
 
   }
   /**
    * Test the tripal_get_job_start() function.
+   *
+   * This is a deprecated function for Tripal v3.
    */
 
   public function test_tripal_get_job_start(){
     global $user;  $args = array();
 
     // Setup: Submit a job successfully and receive a job ID
-    $job_name = uniqid('tripal_test_job');
+    $job_name = uniqid($job_prefix);
     $job_id = tripal_add_job($job_name, 'tripal_test_get_job_start', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
     // Get a job from tripal_get_job function. The job_id #, it should return an job object.
@@ -265,12 +281,14 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
   /**
    * Tests Tripal_get_job_submit_date() function.
+   *
+   * This is a deprecated function for Tripal v3.
    */
   public function test_tripal_get_job_submit_date(){
     global $user;  $args = array();
 
     // Setup: Submit a job successfully and receive a job ID
-    $job_name = uniqid('tripal_test_job');
+    $job_name = uniqid($job_prefix);
     $job_id = tripal_add_job($job_name, 'tripal_test_get_job_submit_date', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
     // Retrieve the job_id. The job_id #, it should return an job object.
@@ -295,28 +313,39 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
     // Setup: Submit a job successfully and receive a job ID.
     // A job status is waiting.
-    $job_name = uniqid('tripal_test_job');
+    $job_name = uniqid($job_prefix);
     $job_id = tripal_add_job($job_name, 'tripal_test_is_job_running', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-
+    $job_name2 = uniqid($job_prefix);
+    $job_id2 = tripal_add_job($job_name2, 'tripal_test_is_job_running', 'tripal_test_jobs_callback', $args, $user->uid, 10);
     // Setup UPDATE statement: Update the status "Running". The status of a job should return running.
     $sql = "UPDATE {tripal_jobs} SET status = 'Running' WHERE job_id = :job_id";
-    $args = array(':job_id' => $job_id);
+    $args = array(':job_id' => $job_id2);
     db_query($sql, $args);
+    $job = tripal_get_job($job_id2);
 
-    // It should return an object
-    $get_a_job_running = tripal_get_job($job_id);
-    $this->assertTrue(is_object($get_a_job_running), 'Case #1: It should have returned an object.');
+    // Checking if a job is running.
+    $jobs = tripal_is_job_running();
 
-    // Checking if a job is running. HELP!
-  //  $is_running_a_job = tripal_is_job_running();
+    // Case #1:  Is the return value an array. Because we have added one job
+    // and set it's status to Running this should be an array with 1 element.
+
+    // Case #2:  Is the job in the array the one we changed to 'Running'.
+
+    // Case #3:  Now set the second job to be running and the return value should
+    // have both jobs in it.
+
+    // Case #4:  Delete both jobs, the return value shoud be FALSE.
 
   }
 
+  /**
+   *
+   */
   public function test_tripal_launch_job(){
     global $user;  $args = array();
 
     // Setup: Submit a job successfully and receive a job ID
-    $job_name = uniqid('tripal_test_job_launch');
+    $job_name = uniqid($job_prefix);
     $job_id = tripal_add_job($job_name, 'tripal_test_launch_job', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
     // Launch all queued tripal jobs.
@@ -324,11 +353,14 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
   }
 
+  /**
+   *
+   */
   public function test_tripal_rerun_job(){
     global $user;  $args = array();
 
 //    // Setup: Submit a job successfully and receive a job ID
-//    $job_name = uniqid('tripal_test_job_rerun_1');
+//    $job_name = uniqid($job_prefix);
 //    $job_id = tripal_add_job($job_name, 'tripal_test_is_job_rerun_1', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 //
 //    // Setup UPDATE statement: Updating the status from running to error.

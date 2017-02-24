@@ -218,9 +218,13 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $this->assertTrue(is_object($job), "Case #1: The function should return an object.");
 
     // Case #2:  Did it give us the correct job back.
+    $job2 = ($job->job_id);
+    $this->assertEquals($job2, $job_id, 'If the two variables $job_id and $job2 expected and actual are equal, it should return TRUE.');
 
-    // Case #3:
-
+    // Case #3: Test, is it missing the $job_id?
+    // The function should return an empty string.
+    $job_id_null = ((unset) $job_id);
+    $this->assertNull($job_id_null, "Case #3: The $job_id should return NULL.");
   }
   /**
    * Tests the tripal_get_job_end() function.
@@ -245,16 +249,18 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     // The output from the end_time date is "Thu, 02/23/2017 - 12:50".
     $end_time = tripal_get_job_end($job);
     $expected = format_date($job->end_time);
-    $this->asserTrue($expected == $end_time, "Case #1: The returned end time does not match what's expected: '$expected' != '$end_type'");
+    $this->assertEquals($expected, $end_time, "Case #1: The returned end time does not match what's expected: '$expected' != '$end_type'");
 
     // Case #2: Test if an empty job object is passed. The function should
     // should return an empty string.
+    $job2 = tripal_get_job();
+    $this->assertTrue(empty($job2), "Case #2: A job object should return empty.");
 
     // Case #3:  Test if a job is an object but it's missing the end_time
     // member variable.  The function should return an empty string.
-    $temp_job = $job;
-    unset($temp_job->end_time);
-
+    $temp_job = $job->end_time;
+    $temp_job_null = ((unset) $temp_job);
+    $this->assertNull($temp_job_null, "Case #3: The end time should return NULL.");
 
   }
   /**

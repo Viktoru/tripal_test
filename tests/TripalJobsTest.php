@@ -358,7 +358,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $args = array(':job_id' => $job_id);
     db_query($sql, $args);
     $job_running = tripal_is_job_running();
-    $this->assertFalse(is_array($job_running), 'Case #1: The return value is (bool)false');
+    $this->assertFalse(is_array($job_running), 'Case #2: The return value is (bool)false');
 
     // Case #3: Is the job in the array the one we changed to 'Running'.
     $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
@@ -385,14 +385,18 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     }
     $this->assertTrue($job_id_total > 0, 'Case #4: Two jobs are running.');
 
-
-    exit;
-
-
     // Case #5:  Delete both jobs, the return value should be FALSE.
+    $job_1 = $job_id;
+    $job_2 = $job_id2;
+    db_delete('tripal_jobs')
+    ->condition('job_id', $job_1)
+      ->execute();
+    db_delete('tripal_jobs')
+      ->condition('job_id', $job_2)
+      ->execute();
 
-
-
+    $this->assertFalse($job_id_total < 0, 'Case #5: The return values is FALSE');
+    exit;
 
   }
 

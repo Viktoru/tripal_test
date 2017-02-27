@@ -224,7 +224,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     // Case #3: Test, is it missing the $job_id?
     // The function should return an empty string.
     $job_id_null = ((unset) $job_id);
-    $this->assertNull($job_id_null, "Case #3: The $job_id should return NULL.");
+    $this->assertNull($job_id_null, "Case #3: The job_id should return NULL.");
   }
   /**
    * Tests the tripal_get_job_end() function.
@@ -249,15 +249,15 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     // The output from the end_time date is "Thu, 02/23/2017 - 12:50".
     $end_time = tripal_get_job_end($job);
     $expected = format_date($job->end_time);
-    $this->assertEquals($expected, $end_time, "Case #1: The returned end time does not match what's expected: '$expected' != '$end_type'");
+    $this->assertEquals($expected, $end_time, "Case #1: The returned end time does not match what's expected: '$expected' != '$end_time'");
 
     // Case #2: Test if an empty job object is passed. The function should
-    // should return an empty string.
+    // return an empty string.
     $job2 = tripal_get_job();
     $this->assertTrue(empty($job2), "Case #2: A job object should return empty.");
 
     // Case #3:  Test if a job is an object but it's missing the end_time
-    // member variable.  The function should return an empty string.
+    // member variable. The function should return an empty string.
     $temp_job = $job->end_time;
     $temp_job_null = ((unset) $temp_job);
     $this->assertNull($temp_job_null, "Case #3: The end time should return NULL.");
@@ -276,15 +276,25 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $job_name = uniqid($job_prefix);
     $job_id = tripal_add_job($job_name, 'tripal_test_get_job_start', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
-    // Get a job from tripal_get_job function. The job_id #, it should return an job object.
+    // Case #1: Test if an job object is not empty.
     $get_job = tripal_get_job($job_id);
+    $this->assertTrue(is_object($get_job), "Case #1: A job object should return.");
 
-    // Runs tripal_get_job_start, if it was already running, it should return "Not Yet Started."
+    // Case #2: Runs tripal_get_job_start, if it was already running, it should return "Not Yet Started."
     $return_start_time = tripal_get_job_start($get_job);
-    $this->assertTrue($return_start_time == 'Not Yet Started', 'Case #1: It should return "Not Yet Started"');
+    $this->assertTrue($return_start_time == 'Not Yet Started', 'Case #2: It should return "Not Yet Started"');
 
+    // Case #3: Test if an empty job object is passed. The function should
+    // return an empty string.
+    $job = tripal_get_job();
+    $this->assertTrue(empty($job), "Case #3: The job object should return empty.");
+
+    // Case #4: Test if a job is an object but it's missing the start time
+    // member variable.  The function should return an empty string.
+    $temp_job = $job->start_time;
+    $temp_job_null = ((unset) $temp_job);
+    $this->assertNull($temp_job_null, "Case #4: The start time should return NULL.");
   }
-
   /**
    * Tests Tripal_get_job_submit_date() function.
    *
@@ -297,55 +307,97 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $job_name = uniqid($job_prefix);
     $job_id = tripal_add_job($job_name, 'tripal_test_get_job_submit_date', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
-    // Retrieve the job_id. The job_id #, it should return an job object.
+    // Case #1: Retrieve a job object.
     $job_object = tripal_get_job($job_id);
+    $this->assertTrue(is_object($job_object), "Case #1:  If a job was submmitted successfully, it should return a job object.");
 
-    // Expecting submit_date date
-    $job_submit_date = tripal_get_job_submit_date($job_object);
+    // Case #2: Test if an empty job object is passed. The function should
+    // return an empty string.
+    $job = tripal_get_job();
+    $this->assertTrue(empty($job), "Case #2: The job object should return empty.");
 
-    // Format $job_submit_date to a numeric submit_date
-    $format_submit_date = time($job_submit_date);
+    // Case #3: The tripal_get_job_submit_date returns the date the job was added to the queue.
+    // Retrieves the Human-readable version of the job's end time.
+    // The output from the submit date is "Thu, 02/23/2017 - 12:50".
+    $job_submit_date_1 = format_date($job_object->submit_date);
+    $job_submit_date_2 = tripal_get_job_submit_date($job_object);
+    $this->assertEquals($job_submit_date_1, $job_submit_date_2, "Case #3: The returned submit time does match.");
 
-    // Case #1: Retrive an submit_date, it should retrieve an numeric submit_date date.
-    $this->assertTrue(is_numeric($format_submit_date), 'Case #1: If a job was submitted successfully. It should return a numeric submit_date date.');
+    // Case #4: Test if a job is an object but it's missing the submit date
+    // member variable.  The function should return an empty string.
+    $temp_job = $job_object->submit_date;
+    $temp_job_null = ((unset) $temp_job);
+    $this->assertNull($temp_job_null, "Case #4: The submit time should return NULL.");
 
   }
 
   /**
    * Tests tripal_is_job_running() function.
+   *
    */
   public function test_tripal_is_job_running(){
-    global $user;  $args = array();
+    global $user; $args = array();
 
+    // UPDATE: Update all the jobs before we add a new job to run, if a job is waiting in the queau.
+    $sql = "UPDATE {tripal_jobs} SET start_time = :start_time, end_time = :end_time, status = 'Completed', progress = '100'";
+    $args = array(':start_time' => time(), ':end_time' => time());
+    db_query($sql, $args);
     // Setup: Submit a job successfully and receive a job ID.
     // A job status is waiting.
     $job_name = uniqid($job_prefix);
     $job_id = tripal_add_job($job_name, 'tripal_test_is_job_running', 'tripal_test_jobs_callback', $args, $user->uid, 10);
+
+    // Case #1: If a job return FALSE, it indicate that no jobs are currently running.
+    $job_not_running = tripal_is_job_running();
+    $this->assertFalse($job_not_running, 'Case #1: Indicate that no jobs are currently running');
+
+    // Case #2:  Is the return value an array. Because we have added one job
+    // and set it's status to Running this should be an array with 1 element.
+    // Setup UPDATE statement: Update the status to "Running".
+    $sql = "UPDATE {tripal_jobs} SET start_time = NULL, end_time = NULL, error_msg = NULL, status = 'Running' WHERE job_id = :job_id";
+    $args = array(':job_id' => $job_id);
+    db_query($sql, $args);
+    $job_running = tripal_is_job_running();
+    $this->assertFalse(is_array($job_running), 'Case #1: The return value is (bool)false');
+
+    // Case #3: Is the job in the array the one we changed to 'Running'.
+    $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
+    $args = array(':job_id' => $job_id);
+    $status = db_query($sql, $args)->fetchField();
+    $this->assertTrue($status == 'Running', 'Case #3: A job is running ');
+
+    // Setup second job: Submit a job successfully and receive a job ID.
+    // A job status is waiting.
     $job_name2 = uniqid($job_prefix);
     $job_id2 = tripal_add_job($job_name2, 'tripal_test_is_job_running', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-    // Setup UPDATE statement: Update the status "Running". The status of a job should return running.
-    $sql = "UPDATE {tripal_jobs} SET status = 'Running' WHERE job_id = :job_id";
+    // Case #4:  Now set the second job to be running and the return value should
+    // have both jobs in it.
+    // Setup UPDATE statement: Update the status to "Running".
+    $sql = "UPDATE {tripal_jobs} SET start_time = NULL, end_time = NULL, error_msg = NULL, status = 'Running' WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id2);
     db_query($sql, $args);
-    $job = tripal_get_job($job_id2);
+    $result = db_query("SELECT status FROM {tripal_jobs} WHERE status = :status ",
+      array(':status' => 'Running')
+      );
+    foreach($result as $row){
+      $count_row = ($row->status. "</pre>");
+      $job_id_total = count($count_row);
+    }
+    $this->assertTrue($job_id_total > 0, 'Case #4: Two jobs are running.');
 
-    // Checking if a job is running.
-    $jobs = tripal_is_job_running();
 
-    // Case #1:  Is the return value an array. Because we have added one job
-    // and set it's status to Running this should be an array with 1 element.
+    exit;
 
-    // Case #2:  Is the job in the array the one we changed to 'Running'.
 
-    // Case #3:  Now set the second job to be running and the return value should
-    // have both jobs in it.
+    // Case #5:  Delete both jobs, the return value should be FALSE.
 
-    // Case #4:  Delete both jobs, the return value shoud be FALSE.
+
+
 
   }
 
   /**
-   *
+   *  Tests tripal_launch_job() function.
    */
   public function test_tripal_launch_job(){
     global $user;  $args = array();
@@ -360,7 +412,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
   }
 
   /**
-   *
+   *  Tests tripal_rerun_job() function.
    */
   public function test_tripal_rerun_job(){
     global $user;  $args = array();

@@ -357,10 +357,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $sql = "UPDATE {tripal_jobs} SET start_time = NULL, end_time = NULL, error_msg = NULL, status = 'Running' WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id);
     db_query($sql, $args);
-    $job_running = tripal_is_job_running();
-    $this->assertFalse(is_array($job_running), 'Case #2: The return value is (bool)false');
-
-    // Case #3: Is the job in the array the one we changed to 'Running'.
+    tripal_is_job_running();
     $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
     $args = array(':job_id' => $job_id);
     $status = db_query($sql, $args)->fetchField();
@@ -370,7 +367,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     // A job status is waiting.
     $job_name2 = uniqid($job_prefix);
     $job_id2 = tripal_add_job($job_name2, 'tripal_test_is_job_running', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-    // Case #4:  Now set the second job to be running and the return value should
+    // Case #3:  Now set the second job to be running and the return value should
     // have both jobs in it.
     // Setup UPDATE statement: Update the status to "Running".
     $sql = "UPDATE {tripal_jobs} SET start_time = NULL, end_time = NULL, error_msg = NULL, status = 'Running' WHERE job_id = :job_id";
@@ -381,11 +378,12 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
       );
     foreach($result as $row){
       $count_row = ($row->status. "</pre>");
+      // Count jobs.
       $job_id_total = count($count_row);
     }
-    $this->assertTrue($job_id_total > 0, 'Case #4: Two jobs are running.');
+    $this->assertTrue($job_id_total > 0, 'Case #3: Two jobs are running.');
 
-    // Case #5:  Delete both jobs, the return value should be FALSE.
+    // Case #4:  Delete both jobs, the return value should be FALSE.
     $job_1 = $job_id;
     $job_2 = $job_id2;
     db_delete('tripal_jobs')
@@ -394,9 +392,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     db_delete('tripal_jobs')
       ->condition('job_id', $job_2)
       ->execute();
-
-    $this->assertFalse($job_id_total < 0, 'Case #5: The return values is FALSE');
-    exit;
+    $this->assertFalse($job_id_total < 0, 'Case #4: The return values is FALSE');
 
   }
 
@@ -410,8 +406,33 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
     $job_name = uniqid($job_prefix);
     $job_id = tripal_add_job($job_name, 'tripal_test_launch_job', 'tripal_test_jobs_callback', $args, $user->uid, 10);
 
-    // Launch all queued tripal jobs.
-    tripal_launch_job($do_pareallel = 0, $job_id = NULL);
+    // If a job is running, launch that specific job_id.
+    tripal_launch_job($do_pareallel = 0, $job_id);
+
+    // Case #2: Verify if a job is not running, it should return FALSE.
+    $job = tripal_is_job_running();
+    $this->assertFalse($job, 'Case #2: A job is not running.');
+
+    // Case #3: Was the job completed?
+    $job = tripal_get_job($job_id);
+    $this->assertTrue($job->status == 'Completed', "Case #2: Job was completed");
+
+    // Case #4: Test launch two jobs.
+    // Setup #1: Submit first job successfully and receive a job ID
+    $job_name = uniqid($job_prefix);
+    $job_1 = tripal_add_job($job_name, 'tripal_test_launch_job', 'tripal_test_jobs_callback', $args, $user->uid, 10);
+    // Setup #2: Submit second job successfully and receive a job ID
+    $job_name = uniqid($job_prefix);
+    $job_2 = tripal_add_job($job_name, 'tripal_test_launch_job', 'tripal_test_jobs_callback', $args, $user->uid, 10);
+    // Launch two jobs.
+    tripal_launch_job($do_pareallel = 1, $job_1);
+    tripal_launch_job($do_pareallel = 1, $job_2);
+
+    // Case #5: Verify if the two jobs were completed.
+    $job_result1 = tripal_get_job($job_1);
+    $this->assertTrue($job_result1->status == 'Completed', "If job_1 is completed, it should return TRUE.");
+    $job_result2 = tripal_get_job($job_2);
+    $this->assertTrue($job_result2->status == 'Completed', "If job_2 is completed, it should return TRUE.");
 
   }
 
@@ -421,31 +442,37 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
   public function test_tripal_rerun_job(){
     global $user;  $args = array();
 
-//    // Setup: Submit a job successfully and receive a job ID
-//    $job_name = uniqid($job_prefix);
-//    $job_id = tripal_add_job($job_name, 'tripal_test_is_job_rerun_1', 'tripal_test_jobs_callback', $args, $user->uid, 10);
-//
-//    // Setup UPDATE statement: Updating the status from running to error.
-//    // If this happens, it should return a status error, the start_time, the end_time plus the error_message.
-//    $sql = "UPDATE {tripal_jobs}
-//            SET start_time = :start_time, end_time = :end_time, status = 'Error', error_msg = 'Job has terminated unexpectedly'
-//            WHERE job_id = :job_id";
-//    $args = array(':job_id' => $job_id, ':start_time' => time(), ':end_time' => time());
-//    db_query($sql, $args);
-//
-//    // Setup SELECT statement: If the status retrieve an error, it should return TRUE.
-//    $sql = "SELECT status FROM {tripal_jobs} WHERE job_id = :job_id";
-//    $args = array(':job_id' => $job_id);
-//    $status_error = db_query($sql, $args)->fetchField();
-//
-//    // Case #1: If a job has terminated unexpectedly, it should return a status error.
-//    $this->assertTrue($status_error == 'Error', "Case #1: A Job has terminated unexpectedly, it should return Error.");
-//
-//    // Case #2: If the status return an error, we can re-run it manually. Use the command line to re-run it.
-//    tripal_rerun_job($job_id, [$goto_jobs_page = TRUE]);
+    // Setup: Submit a job successfully and receive a job ID
+    $job_name = uniqid($job_prefix);
+    $job_id = tripal_add_job($job_name, 'tripal_test_is_job_rerun_1', 'tripal_test_jobs_callback', $args, $user->uid, 10);
+
+    // Case #1: Verify if a job is not running, it should return FALSE.
+    $get_job = tripal_get_job($job_id);
+    $this->assertTrue($get_job->status == 'Waiting', " A job is not running, it should return TRUE.");
+
+    // Case #2: Verify if a job is not running, it should return FALSE.
+    $job = tripal_is_job_running();
+    $this->assertFalse($job, 'Case #2: A job is not running.');
+
+    // Setup UPDATE statement: Updating the status from waiting to error.
+    // If this happens, it should return a status error, the start_time, the end_time plus the error_message.
+    $sql = "UPDATE {tripal_jobs}
+            SET start_time = :start_time, end_time = :end_time, status = 'Error', error_msg = 'Job has terminated unexpectedly'
+            WHERE job_id = :job_id";
+    $args = array(':job_id' => $job_id, ':start_time' => time(), ':end_time' => time());
+    db_query($sql, $args);
+    // Case #3: Getting the job status  "error". It will assign a new job_id.
+    $get_job = tripal_get_job($job_id);
+    $this->assertTrue($get_job->status == 'Error', "Case #3: The job should return a status error.");
+
+    // Case #4: In this case we are going to Re-run the job.
+    // After that we can execute a job by drushing it:
+    // If the job status return Completed after you execute the job in the command line, it should return TRUE.
+    // "drush trp-run-jobs --username=administrator".
+    tripal_rerun_job($get_job->job_id, $goto_jobs_page = TRUE);
+    $this->assertTrue($get_job->status == 'Completed', "If the job status is Completed, it should return TRUE.");
 
   }
-
 
 }
 

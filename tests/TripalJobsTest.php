@@ -467,7 +467,7 @@ class TripalJobsTest extends PHPUnit_Framework_TestCase {
 
     // Case #4: In this case we are going to Re-run the job.
     // After that we can execute a job by drushing it:
-    // If the job status return Completed after you execute the job in the command line, it should return TRUE.
+    // If the job status return "Completed" Execute the job "command line".
     // "drush trp-run-jobs --username=administrator".
     tripal_rerun_job($get_job->job_id, $goto_jobs_page = TRUE);
     $this->assertTrue($get_job->status == 'Completed', "If the job status is Completed, it should return TRUE.");
